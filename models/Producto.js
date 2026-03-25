@@ -1,18 +1,17 @@
 const mongoose = require('mongoose');
+
 const ProductoSchema = new mongoose.Schema({
     nombre: { type: String, required: true, trim: true },
-    presentacion: { type: String, trim: true }, // Ej: "Bolsa 500g"
+    presentacion: { type: String, required: true, trim: true }, // "450g" o "5.8kg"
     
-    // --- PRECIOS FIJOS (Sin Club) ---
-    precio_ocasional: { type: Number, default: 65000 },
-    precio_empresarial: { type: Number, default: 640000 },
-
-    // --- PRECIOS DESCUENTOS POR PERTENENCER AL CLUB) ---
+    // Precios Ocasionales (Bolsa 450g)
+    precio_ocasional: { type: Number },
+    precio_club_ocasional: { type: Number },
     
-    precio_club_ocasional: { type: Number, default: 40000 },
-    precio_club_empresarial: { type: Number, default: 600000 },
+    // Precios Empresariales (Bulto 5.8kg)
+    precio_empresarial: { type: Number },
+    precio_club_empresarial: { type: Number },
 
-    // --- TUS CAMPOS DE APOYO ---
     imagen: { type: String, default: 'https://via.placeholder.com/300' },
     stock: { type: Number, default: 0 },
     categoria: { type: String, default: 'Café Especial' },
