@@ -1,16 +1,13 @@
 const mongoose = require('mongoose');
-const conectarDB = async () => {
-    try {
-        await mongoose.connect(process.env.DB_MONGO, {
-            // Aquí van tus opciones de configuración si las usas
-        });
-        console.log('✅ Base de Datos Conectada');
-    } catch (error) {
-        console.log('❌ Error de conexión:');
-        console.log(error);
-        
-        // --- APLICAR AQUÍ ---
-        process.exit(1); // Detiene la aplicación por error crítico
-    }
-}
-module.exports = conectarDB;
+
+// Definimos la dirección con la clave que me diste
+const MONGO_URI = "mongodb+srv://adminCafe:Armenia2026@cluster0.wosy0ry.mongodb.net/TiendaCafe?retryWrites=true&w=majority";
+
+mongoose.connect(MONGO_URI, {
+    // Estas opciones ayudan a una conexión más estable
+    tlsAllowInvalidCertificates: true 
+})
+.then(() => console.log('✅ ¡Conectado a TiendaCafe en Atlas!'))
+.catch(err => console.error('❌ Error de conexión:', err.message));
+
+module.exports = mongoose;

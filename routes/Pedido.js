@@ -25,22 +25,26 @@ router.post('/', async (req, res) => {
             // Aplicar escala de 450g (Ocasional)
             precioAplicado = esMiembroClub ? producto.precio_club_ocasional : producto.precio_ocasional;
         }
-
         // 3. Cálculo del subtotal
         const subtotal = precioAplicado * cantidad;
-
-        // 4. Guardar el pedido
+                // 4. Guardar el pedido con los nombres correctos del modelo
         const nuevoPedido = new Pedido({
-            producto: productoId,
-            cantidad,
-            precio_unitario: precioAplicado,
-            subtotal: subtotal,
-            esMiembroClub
+            productos: [{ 
+                producto: productoId, 
+                cantidad: cantidad 
+            }], 
+            precio_total: subtotal, // Cambiamos subtotal por precio_total
+            esMiembroClub,
+            nombre,
+            cedula,
+            celular,
+            email,
+            ciudad,
+            departamento,
+            direccion
         });
-
         await nuevoPedido.save();
-        
-        res.status(201).json({
+                res.status(201).json({
             mensaje: 'Pedido procesado con éxito',
             detalles: {
                 presentacion: producto.presentacion,
@@ -49,14 +53,9 @@ router.post('/', async (req, res) => {
                 ahorro_club: esMiembroClub ? 'Descuento aplicado ✅' : 'Sin descuento'
             }
         });
-
     } catch (error) {
         res.status(400).json({ mensaje: 'Error al procesar el pedido', error: error.message });
     }
-
-  
-
-
 });
 // Este código va en la línea 65 (el espacio vacío que tienes)
 router.get('/', async (req, res) => {

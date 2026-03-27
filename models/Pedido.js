@@ -2,26 +2,26 @@ const mongoose = require('mongoose');
 const PedidoSchema = new mongoose.Schema({
     // --- Datos de Identificación y Envío ---
     nombre: {         type: String, 
-        required: [true, 'El nombre completo es obligatorio'] 
+        required: [false, 'El nombre completo es obligatorio'] 
     },
     cedula: {         type: String, 
-        required: [true, 'El documento de identidad es obligatorio para la factura'] 
+        required: [false, 'El documento de identidad es obligatorio para la factura'] 
     },
     celular: {         type: String, 
-        required: [true, 'El celular es indispensable para la transportadora'] 
+        required: [false, 'El celular es indispensable para la transportadora'] 
     },
     email: {         type: String, 
-        required: [true, 'El correo electrónico es obligatorio'] 
+        required: [false, 'El correo electrónico es obligatorio'] 
     },
     ciudad: {         type: String, 
-        required: [true, 'Debe indicar la ciudad de destino para calcular el envío'] 
+        required: [false, 'Debe indicar la ciudad de destino para calcular el envío'] 
     },
     departamento: {         type: String,
-         required: [true, 'Debe indicar la ciudad de destino para calcular el envío'] 
+         required: [false, 'Debe indicar la ciudad de destino para calcular el envío'] 
     },
 
     direccion: {         type: String, 
-        required: [true, 'Debe indicar la dirección exacta para la entrega'] 
+        required: [false, 'Debe indicar la dirección exacta para la entrega'] 
     },
         productos: [{
         productoId: { type: mongoose.Schema.Types.ObjectId, ref: 'Producto' },
