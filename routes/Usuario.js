@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const Usuario = require('../models/Usuario');
-
 // OBTENER TODOS LOS USUARIOS
 router.get('/', async (req, res) => {
     try {
@@ -11,7 +10,6 @@ router.get('/', async (req, res) => {
         res.status(500).json({ mensaje: 'Error al obtener usuarios', error: error.message });
     }
 });
-
 // REGISTRAR UN NUEVO USUARIO (Aquí definimos si es ocasional o empresarial)
 router.post('/', async (req, res) => {
     try {
@@ -25,5 +23,4 @@ router.post('/', async (req, res) => {
         res.status(400).json({ mensaje: 'Error al registrar usuario', error: error.message });
     }
 });
-
 module.exports = router;

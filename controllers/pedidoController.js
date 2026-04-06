@@ -1,53 +1,32 @@
 const Pedido = require('../models/Pedido');
 const Producto = require('../models/Producto');
-
-exports.crearPedido = async (req, res) => {
+const crearPedido = async (req, res) => {
     try {
-        // 1. Desestructuración: Recibimos el ID del usuario (cliente) y la lista de productos
         const { 
-            usuario, 
-            nombre, 
-            cedula, 
-            celular, 
-            email, 
-            ciudad, 
-            departamento, 
-            direccion, 
-            productos 
+            clienteId, productoId, cantidad, esMiembroClub, 
+            nombre, cedula, celular, email, ciudad, 
+            departamento, direccion, molienda,            
+            rol, nit, razonSocial
+
         } = req.body;
+        const producto = await Producto.findById(productoId);
+        if (!producto) return res.status(404).json({ mensaje: 'Producto no encontrado' });
 
-        // 2. Lógica de Ingeniería: Inicializamos el acumulador para el total del cliente
-        let totalGeneral = 0;
+        // Lógica de Precios Ventana al Quindío
+        let precioAplicado = 0;
+        const esEmpresarial = producto.presentacion.includes('5.8');
 
-        // 3. Procesamiento en paralelo: Validamos cada producto contra MongoDB Atlas
-        const productosCalculados = await Promise.all(productos.map(async (item) => {
-            
-            // Buscamos el producto real por su ID para asegurar integridad
-            const productoDb = await Producto.findById(item.productoId); 
-            
-            if (!productoDb) {
-                throw new Error(`El producto con ID ${item.productoId} no existe en el catálogo.`);
-            }
+        if (esEmpresarial) {
+            precioAplicado = esMiembroClub ? producto.precio_club_empresarial : producto.precio_empresarial;
+        } else {
+            precioAplicado = esMiembroClub ? producto.precio_club_ocasional : producto.precio_ocasional;
+        }
 
-            // FÓRMULA: Cantidad solicitada * Precio enviado desde el frontend
-            const sub = Number(item.cantidad) * Number(item.precio_unitario);
-            
-            // Acumulamos en el total que pagará el cliente
-            totalGeneral += sub;
+        const subtotalCalculado = precioAplicado * cantidad;
 
-            return { 
-                producto: item.productoId, // Referencia al ID para el populate
-                nombre: item.nombre, 
-                presentacion: item.presentacion,
-                cantidad: Number(item.cantidad),
-                precio_unitario: Number(item.precio_unitario),
-                subtotal: sub
-            };
-        }));
-
-        // 4. Construcción del Objeto Pedido: Vinculamos la identidad del cliente (usuario)
+        // Creación del pedido EXACTAMENTE como pide tu SCHEMA
         const nuevoPedido = new Pedido({
-            usuario, // ID del cliente obtenido de Atlas
+            usuario: clienteId, // <-- AQUÍ: clienteId del body va al campo 'usuario' del modelo
             nombre,
             cedula,
             celular,
@@ -55,29 +34,58 @@ exports.crearPedido = async (req, res) => {
             ciudad,
             departamento,
             direccion,
-            productos: productosCalculados,
-            precio_total: totalGeneral, // El resultado de la sumatoria de ingeniería
+            esMiembroClub, // <-- Ahora sí lo guardamos
+            // --- GUARDAMOS LOS DATOS EMPRESARIALES EN EL PEDIDO ---
+            rol: rol || 'ocasional',
+            nit: nit || '',
+            razonSocial: razonSocial || '',
+            productos: [{
+                productoId: productoId, // Coincide con tu Schema
+                nombre: producto.nombre,
+                presentacion: producto.presentacion,
+                cantidad: cantidad,
+                precio_unitario: precioAplicado,
+                molienda: molienda || 'Grano', // Valor por defecto si no viene
+                subtotal: subtotalCalculado
+            }],
+            precio_total: subtotalCalculado,
             estado: 'Pendiente'
+            // La fecha se pone sola por el 'default: Date.now' del Schema
         });
 
-        // 5. Persistencia: Guardamos el pedido final en la nube
         await nuevoPedido.save();
-
+        
         res.status(201).json({
-            msg: "¡Pedido registrado con éxito!",
-            detalles: {
-                cliente: nombre,
-                total_pagar: totalGeneral,
-                items_procesados: productosCalculados.length
-            },
+            mensaje: '¡Pedido registrado con éxito! ☕',
             pedido: nuevoPedido
         });
 
     } catch (error) {
-        console.error("Error en la lógica de pedidos:", error.message);
-        res.status(500).json({ 
-            mensaje: "Error al procesar el pedido", 
-            error: error.message 
-        });
+        res.status(400).json({ mensaje: 'Error al procesar el pedido', error: error.message });
+    }
+};
+
+// Obtener todos los pedidos
+const obtenerPedidos = async (req, res) => {
+    try {
+        const pedidos = await Pedido.find().sort({ fecha: -1 });
+        res.json(pedidos);
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al obtener la lista de pedidos' });
+    }
+};
+
+// EXPORTACIÓN UNIFICADA
+module.exports = { 
+    crearPedido, 
+    obtenerPedidosUsuario: obtenerPedidos, 
+    obtenerPedidoPorId: async (req, res) => {
+        try {
+            const pedido = await Pedido.findById(req.params.id);
+            if (!pedido) return res.status(404).json({ mensaje: 'Pedido no encontrado' });
+            res.json(pedido);
+        } catch (error) {
+            res.status(500).json({ mensaje: 'Error al buscar el pedido', error: error.message });
+        }
     }
 };

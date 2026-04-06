@@ -1,13 +1,13 @@
 {
   "name": "cafe-backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "APIREST CON NODE",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+        "dev": "nodemon index.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "Alvaro",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {

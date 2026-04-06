@@ -3,9 +3,12 @@ const UsuarioSchema = new mongoose.Schema({
     nombre: {         type: String, 
         required: [true, 'El nombre es obligatorio'] 
     },
-    cedula: {         type: String, 
-        required: [true, 'El documento es obligatorio'], 
-        unique: true 
+    cedula: { 
+    type: String, 
+    required: [true, 'La cédula es obligatoria para procesar el pedido'], 
+    unique: true, // Evita que dos personas usen el mismo documento
+    trim: true    // Limpia espacios accidentales al inicio o final
+
     },
     email: {         type: String, 
         required: [true, 'El correo es obligatorio'], 
@@ -24,22 +27,25 @@ const UsuarioSchema = new mongoose.Schema({
     // Datos de Empresa (Solo se llenan si el rol es 'empresarial')
     nit: { type: String, default: '' },
     razonSocial: { type: String, default: '' },
-    
-    // Datos de Ubicación y Envío (Unificados)
+        // Datos de Ubicación y Envío (Unificados)
     ciudad: { 
-        type: String, 
-        default: 'Armenia',
-        required: [true, 'La ciudad es necesaria para el envío'] 
-    },
-    direccion: { 
+    type: String, 
+    required: [true, 'La ciudad es necesaria para el envío'],
+    trim: true 
+},
+    departamento: { 
+    type: String, 
+    required: [true, 'El departamento es necesario para el envío'],
+    trim: true 
+},
+        direccion: { 
         type: String, 
         required: [true, 'La dirección es necesaria para el envío'] 
     },
-    
-    tieneMembresiaClub: { 
+        esMiembroClub: { 
         type: Boolean, 
         default: false 
-    },
+           },
     fecha_registro: { 
         type: Date, 
         default: Date.now 

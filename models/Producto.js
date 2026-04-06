@@ -1,21 +1,25 @@
 const mongoose = require('mongoose');
-
 const ProductoSchema = new mongoose.Schema({
     nombre: { type: String, required: true, trim: true },
     presentacion: { type: String, required: true, trim: true }, // "450g" o "5.8kg"
-    
-    // Precios Ocasionales (Bolsa 450g)
-    precio_ocasional: { type: Number },
-    precio_club_ocasional: { type: Number },
-    
-    // Precios Empresariales (Bulto 5.8kg)
-    precio_empresarial: { type: Number },
-    precio_club_empresarial: { type: Number },
-
-    imagen: { type: String, default: 'https://via.placeholder.com/300' },
+    precio_ocasional: { type: Number, required: false },       // $65.000// Precios basados en tu tabla del SENA
+    precio_club_ocasional: { type: Number, required: false },  // $40.000
+    precio_empresarial: { type: Number, required: false },     // $640.000
+    precio_club_empresarial: { type: Number, required: false }, // $600.000
     stock: { type: Number, default: 0 },
-    categoria: { type: String, default: 'Café Especial' },
-    disponible: { type: Boolean, default: true }
-});
-
+    categoria: { 
+        type: String, 
+        enum: ['Café Especial', 'Accesorio', 'Suscripción'], 
+        default: 'Café Especial' 
+    },  
+        // Si es un accesorio (Filtros/Kit), este array se deja vacío []
+    molienda: { 
+        type: [String], 
+        default: ['Grano', 'Molido'] 
+    },
+    disponible: { type: Boolean, default: true },
+    imagen_url: { type: String } // Para conectar con las fotos de tu Frontend
+}, { timestamps: true }); // Crea automáticamente createdAt y updatedAt
 module.exports = mongoose.model('Producto', ProductoSchema);
+
+
