@@ -24,20 +24,24 @@ const agregarAlCarrito = async (req, res) => {// 1. AGREGAR O ACTUALIZAR PRODUCT
             const existe = carrito.productos.findIndex(p => p.productoId.toString() === productoId);// Verificar si el café ya está en el carrito
         if (existe >= 0) {
             // Caso A: El producto ya está en el carrito, actualizamos
-            carrito.productos[existe].cantidad += Number(cantidad);
+            carrito.productos[existe].cantidad = Number(cantidad);
             carrito.productos[existe].precio_unitario = precioAplicado;
             carrito.productos[existe].subtotal = carrito.productos[existe].cantidad * precioAplicado;
         } else {
-            // Caso B: El producto es nuevo, lo agregamos con todas sus propiedades
-            carrito.productos.push({
-                productoId: productoId,
-                cantidad: Number(cantidad),
-                precio_unitario: precioAplicado,
-                subtotal: Number(cantidad) * precioAplicado
+            // Caso B: El producto es nuevo, lo agregamos con sus propiedades de la BD
+     carrito.productos.push({
+    productoId: productoId,
+    nombre: producto.nombre,         // <--- AGREGUE ESTA LÍNEA
+    presentacion: producto.presentacion, // <--- AGREGUE ESTA LÍNEA
+    molienda: molienda || 'N/A', 
+    cantidad: Number(cantidad),
+    precio_unitario: precioAplicado,
+    subtotal: Number(cantidad) * precioAplicado
+
             });
         }
         // Calculamos el total general del carrito sumando los subtotales
-        carrito.total = carrito.productos.reduce((acc, item) => acc + item.subtotal, 0);
+        carrito.total_carrito = carrito.productos.reduce((acc, item) => acc + item.subtotal, 0);
         await carrito.save();
         res.status(200).json({ msg: 'Carrito actualizado con éxito ☕', carrito });
 

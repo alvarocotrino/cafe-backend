@@ -3,10 +3,21 @@ const Producto = require('../models/Producto');
 const crearPedido = async (req, res) => {
     try {
         const { 
-            clienteId, productoId, cantidad, esMiembroClub, 
-            nombre, cedula, celular, email, ciudad, 
-            departamento, direccion, molienda,            
-            rol, nit, razonSocial
+            usuarioId,
+            productoId, 
+            cantidad, 
+            esMiembroClub, 
+            nombre, 
+            cedula, 
+            celular,
+            email, 
+            ciudad, 
+            departamento, 
+            direccion,
+            molienda,            
+            rol,
+            nit, 
+            razonSocial
 
         } = req.body;
         const producto = await Producto.findById(productoId);
@@ -26,7 +37,7 @@ const crearPedido = async (req, res) => {
 
         // Creación del pedido EXACTAMENTE como pide tu SCHEMA
         const nuevoPedido = new Pedido({
-            usuario: clienteId, // <-- AQUÍ: clienteId del body va al campo 'usuario' del modelo
+            usuarioId, // Esto enviará el ID que recibes en el req.body
             nombre,
             cedula,
             celular,
@@ -75,17 +86,32 @@ const obtenerPedidos = async (req, res) => {
     }
 };
 
-// EXPORTACIÓN UNIFICADA
+// pedidoController.js
+
+// ... (aquí abajo de sus otras funciones como crearPedido y obtenerPedidos)
+
+// EXPORTACIÓN UNIFICADA Y LIMPIA
 module.exports = { 
     crearPedido, 
     obtenerPedidosUsuario: obtenerPedidos, 
     obtenerPedidoPorId: async (req, res) => {
         try {
-            const pedido = await Pedido.findById(req.params.id);
-            if (!pedido) return res.status(404).json({ mensaje: 'Pedido no encontrado' });
+            // Buscamos el pedido y usamos .populate para ver los nombres de los productos
+            const pedido = await Pedido.findById(req.params.id)
+                .populate('usuario', 'nombre email')
+                .populate('productos.producto');
+
+            if (!pedido) {
+                return res.status(404).json({ mensaje: 'Pedido no encontrado' });
+            }
+            
             res.json(pedido);
         } catch (error) {
-            res.status(500).json({ mensaje: 'Error al buscar el pedido', error: error.message });
+            // Si el ID está mal formado (ej. le falta un número), caerá aquí
+            res.status(500).json({ 
+                mensaje: 'Error al buscar el pedido', 
+                error: error.message 
+            });
         }
     }
 };

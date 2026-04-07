@@ -1,23 +1,21 @@
 const mongoose = require('mongoose');
 const PedidoSchema = new mongoose.Schema({
     // --- DATOS DEL USUARIO ---
-    usuario: { // Este es tu 'clienteId'
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: 'Usuario', 
-        required: true 
+    usuarioId: { // Antes era 'usuario'
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Usuario',
+    required: true
     },
     
-    nombre: { type: String, required: true }, // "Alvaro Garcia"
+        nombre: { type: String, required: true }, // "Alvaro Garcia"
     cedula: { type: String, required: true },
-  
-     celular: {         type: String, 
+       celular: {         type: String, 
         required: [false, 'El celular es indispensable para la transportadora'] 
     },
     email: {         type: String, 
         required: [false, 'El correo electrónico es obligatorio'] 
     },
-    
-   ciudad: { 
+     ciudad: { 
     type: String, 
     required: [true, 'La ciudad es necesaria para el envío'],
     trim: true 
@@ -38,19 +36,17 @@ const PedidoSchema = new mongoose.Schema({
     },
     nit: { type: String, default: '' },
     razonSocial: { type: String, default: '' },
-
     esMiembroClub: { type: Boolean, default: false },
         productos: [{
         productoId: { type: mongoose.Schema.Types.ObjectId, ref: 'Producto' },
         nombre: String, // nombre del producto
-        presentacion: String, // ej: "Bolsa 450g" o "Pack 5.8kg"
+        presentacion: String, // ej: "Bolsa 450g" o "Paqute 5.8kg"
         cantidad: { type: Number, required: true },
         precio_unitario: { type: Number, required: true }, 
         molienda: {
             type: String,
             default: 'N/A'
         },
-
         subtotal: { type: Number, required: true } 
     }],
         precio_total: { 

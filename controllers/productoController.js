@@ -10,13 +10,20 @@ exports.crearProducto = async (req, res) => {// 2. CREAR PRODUCTO (Con la lógic
     try {
         let datos = req.body;
         if (datos?.presentacion) {
-            if (datos.presentacion.includes('5.8')) {
+            if (datos.presentacion.includes('5.8kg')) {
                 delete datos.precio_ocasional;
                 delete datos.precio_club_ocasional;
-            } else if (datos.presentacion.includes('450')) {
+            } else if (datos.presentacion.includes('450g')) {
                 delete datos.precio_empresarial;
                 delete datos.precio_club_empresarial;
             }                    }
+ else if (datos.categoria === 'Accesorio') {
+            // Limpieza para productos complementarios (Kit/Filtros)
+            delete datos.precio_club_ocasional;
+            delete datos.precio_empresarial;
+            delete datos.precio_club_empresarial;
+        }
+
         const nuevoProducto = new Producto(datos);// crear producto con los datos filtrados
         await nuevoProducto.save();
         res.status(201).json(nuevoProducto);
