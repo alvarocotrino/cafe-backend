@@ -1,8 +1,9 @@
 const Carrito = require('../models/Carrito');
 const Producto = require('../models/Producto');
+
 const agregarAlCarrito = async (req, res) => {// 1. AGREGAR O ACTUALIZAR PRODUCTO (Lógica de Precios Ventana al Quindío)
     try {
-        const { usuarioId, productoId, cantidad, esMiembroClub } = req.body;
+        const { usuarioId, productoId, cantidad, esMiembroClub, molienda } = req.body;
         // Validar el producto y calcular precio según peso
         const producto = await Producto.findById(productoId);
         if (!producto) return res.status(404).json({ msg: 'Producto no encontrado' });
@@ -18,6 +19,9 @@ const agregarAlCarrito = async (req, res) => {// 1. AGREGAR O ACTUALIZAR PRODUCT
             }
         }
           let carrito = await Carrito.findOne({ usuario: usuarioId });// Buscar o crear el carrito del usuario
+
+
+          
         if (!carrito) {
             carrito = new Carrito({ usuario: usuarioId, productos: [] });
         }
@@ -28,12 +32,15 @@ const agregarAlCarrito = async (req, res) => {// 1. AGREGAR O ACTUALIZAR PRODUCT
             carrito.productos[existe].precio_unitario = precioAplicado;
             carrito.productos[existe].subtotal = carrito.productos[existe].cantidad * precioAplicado;
         } else {
+            
+                      
             // Caso B: El producto es nuevo, lo agregamos con sus propiedades de la BD
      carrito.productos.push({
+    
     productoId: productoId,
-    nombre: producto.nombre,         // <--- AGREGUE ESTA LÍNEA
-    presentacion: producto.presentacion, // <--- AGREGUE ESTA LÍNEA
-    molienda: molienda || 'N/A', 
+    nombre: producto.nombre,        
+    presentacion: producto.presentacion, 
+    molienda: molienda ? String(molienda) : 'N/A',
     cantidad: Number(cantidad),
     precio_unitario: precioAplicado,
     subtotal: Number(cantidad) * precioAplicado
@@ -43,8 +50,9 @@ const agregarAlCarrito = async (req, res) => {// 1. AGREGAR O ACTUALIZAR PRODUCT
         // Calculamos el total general del carrito sumando los subtotales
         carrito.total_carrito = carrito.productos.reduce((acc, item) => acc + item.subtotal, 0);
         await carrito.save();
-        res.status(200).json({ msg: 'Carrito actualizado con éxito ☕', carrito });
-
+       
+       res.status(201).json({ msg: "...", carrito });
+    
     } catch (error) {
         res.status(500).json({ msg: 'Error al agregar', error: error.message });
     }

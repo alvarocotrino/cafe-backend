@@ -1,18 +1,14 @@
-// routes/Pedido.js
 const express = require('express');
 const router = express.Router();
 const pedidoController = require('../controllers/pedidoController');
-
-// 1. PRIMERO: La ruta raíz (GET global)
-router.get('/', pedidoController.obtenerPedidosUsuario); 
-
-// 2. SEGUNDO: La ruta de creación (POST)
+// 1. Crear un pedido (POST)
 router.post('/', pedidoController.crearPedido);
 
-// 3. TERCERO: Rutas con parámetros específicos
-router.get('/usuario/:usuarioId', pedidoController.obtenerPedidosUsuario);
+// 2. Obtener pedidos (General o por Usuario)
+router.get('/', pedidoController.obtenerPedidos);
+router.get('/usuario/:usuarioId', pedidoController.obtenerPedidos);
 
-// 4. AL FINAL: La ruta con ID dinámico (para que no atrape a las demás)
-router.get('/:id', pedidoController.obtenerPedidoPorId);
+// 3. Eliminar un pedido (AÑADE ESTA LÍNEA)
+router.delete('/:id', pedidoController.eliminarPedido);
 
 module.exports = router;

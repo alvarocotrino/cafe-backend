@@ -1,117 +1,98 @@
 const Pedido = require('../models/Pedido');
 const Producto = require('../models/Producto');
+const Carrito = require('../models/Carrito');
+
+// --- 1. CREAR PEDIDO ---
 const crearPedido = async (req, res) => {
     try {
         const { 
-            usuarioId,
-            productoId, 
-            cantidad, 
-            esMiembroClub, 
-            nombre, 
-            cedula, 
-            celular,
-            email, 
-            ciudad, 
-            departamento, 
-            direccion,
-            molienda,            
-            rol,
-            nit, 
-            razonSocial
-
+            usuarioId, carritoId, productos, esMiembroClub, nombre, 
+            cedula, celular, email, ciudad, departamento, direccion, 
+            metodoPago, notas, nit, razonSocial 
         } = req.body;
-        const producto = await Producto.findById(productoId);
-        if (!producto) return res.status(404).json({ mensaje: 'Producto no encontrado' });
 
-        // Lógica de Precios Ventana al Quindío
-        let precioAplicado = 0;
-        const esEmpresarial = producto.presentacion.includes('5.8');
+        let productosFinales = [];
+        let precio_total = 0;
 
-        if (esEmpresarial) {
-            precioAplicado = esMiembroClub ? producto.precio_club_empresarial : producto.precio_empresarial;
-        } else {
-            precioAplicado = esMiembroClub ? producto.precio_club_ocasional : producto.precio_ocasional;
+        for (const p of productos) {
+            const productoBD = await Producto.findById(p.productoId);
+            if (!productoBD) return res.status(404).json({ mensaje: 'Producto no encontrado' });
+
+            let precioReal = 0;
+            const nombreProd = productoBD.nombre;
+
+            // Lógica de precios
+            if (nombreProd.includes('450g')) {
+                precioReal = esMiembroClub ? 40000 : 65000;
+            } else if (nombreProd.includes('5.8Kg')) {
+                precioReal = esMiembroClub ? 600000 : 640000;
+            } else if (nombreProd.includes('Filtro')) {
+                precioReal = 60000;
+            } else if (nombreProd.includes('Kit')) {
+                precioReal = 120000;
+            } else {
+                precioReal = productoBD.precio || 0;
+            }
+
+            const subtotal = precioReal * p.cantidad;
+            precio_total += subtotal;
+
+            const esCafe = nombreProd.toLowerCase().includes('café') || nombreProd.toLowerCase().includes('cafe');
+
+            productosFinales.push({
+                productoId: p.productoId,
+                nombre: nombreProd,
+                cantidad: p.cantidad,
+                precio_unitario: precioReal,
+                subtotal: subtotal,
+                molienda: esCafe ? (p.molienda || 'Grano') : 'No aplica',
+                presentacion: p.presentacion // <--- ASEGÚRATE DE QUE ESTA LÍNEA EXISTA
+            });
         }
 
-        const subtotalCalculado = precioAplicado * cantidad;
-
-        // Creación del pedido EXACTAMENTE como pide tu SCHEMA
         const nuevoPedido = new Pedido({
-            usuarioId, // Esto enviará el ID que recibes en el req.body
-            nombre,
-            cedula,
-            celular,
-            email,
-            ciudad,
-            departamento,
-            direccion,
-            esMiembroClub, // <-- Ahora sí lo guardamos
-            // --- GUARDAMOS LOS DATOS EMPRESARIALES EN EL PEDIDO ---
-            rol: rol || 'ocasional',
-            nit: nit || '',
-            razonSocial: razonSocial || '',
-            productos: [{
-                productoId: productoId, // Coincide con tu Schema
-                nombre: producto.nombre,
-                presentacion: producto.presentacion,
-                cantidad: cantidad,
-                precio_unitario: precioAplicado,
-                molienda: molienda || 'Grano', // Valor por defecto si no viene
-                subtotal: subtotalCalculado
-            }],
-            precio_total: subtotalCalculado,
+            usuarioId, nombre, cedula, celular, email, ciudad, departamento, 
+            direccion, esMiembroClub, metodoPago, notas, nit, razonSocial,
+            precio_total,
+            productos: productosFinales,
+            rol: (precio_total >= 600000) ? 'empresarial' : 'ocasional',
             estado: 'Pendiente'
-            // La fecha se pone sola por el 'default: Date.now' del Schema
         });
 
         await nuevoPedido.save();
-        
-        res.status(201).json({
-            mensaje: '¡Pedido registrado con éxito! ☕',
-            pedido: nuevoPedido
-        });
+        if (carritoId) await Carrito.findByIdAndDelete(carritoId);
 
+        res.status(201).json({ mensaje: '¡Pedido registrado con éxito! ☕', pedido: nuevoPedido });
     } catch (error) {
-        res.status(400).json({ mensaje: 'Error al procesar el pedido', error: error.message });
+        res.status(400).json({ mensaje: 'Error al crear pedido', error: error.message });
     }
 };
 
-// Obtener todos los pedidos
+// --- 2. OBTENER PEDIDOS ---
 const obtenerPedidos = async (req, res) => {
     try {
-        const pedidos = await Pedido.find().sort({ fecha: -1 });
+        const { usuarioId } = req.params;
+        const query = usuarioId ? { usuarioId } : {};
+        const pedidos = await Pedido.find(query).sort({ fecha: -1 });
         res.json(pedidos);
     } catch (error) {
-        res.status(500).json({ mensaje: 'Error al obtener la lista de pedidos' });
+        res.status(500).json({ mensaje: 'Error al obtener pedidos', error: error.message });
     }
 };
 
-// pedidoController.js
+// --- 3. ELIMINAR PEDIDO ---
+const eliminarPedido = async (req, res) => {
+    try {
+        await Pedido.findByIdAndDelete(req.params.id);
+        res.json({ mensaje: 'Pedido eliminado correctamente' });
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al eliminar', error: error.message });
+    }
+};
 
-// ... (aquí abajo de sus otras funciones como crearPedido y obtenerPedidos)
-
-// EXPORTACIÓN UNIFICADA Y LIMPIA
+// --- EXPORTACIÓN ---
 module.exports = { 
     crearPedido, 
-    obtenerPedidosUsuario: obtenerPedidos, 
-    obtenerPedidoPorId: async (req, res) => {
-        try {
-            // Buscamos el pedido y usamos .populate para ver los nombres de los productos
-            const pedido = await Pedido.findById(req.params.id)
-                .populate('usuario', 'nombre email')
-                .populate('productos.producto');
-
-            if (!pedido) {
-                return res.status(404).json({ mensaje: 'Pedido no encontrado' });
-            }
-            
-            res.json(pedido);
-        } catch (error) {
-            // Si el ID está mal formado (ej. le falta un número), caerá aquí
-            res.status(500).json({ 
-                mensaje: 'Error al buscar el pedido', 
-                error: error.message 
-            });
-        }
-    }
+    obtenerPedidos, 
+    eliminarPedido 
 };
