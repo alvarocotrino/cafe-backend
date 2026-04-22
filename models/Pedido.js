@@ -15,9 +15,12 @@ const PedidoSchema = new mongoose.Schema(
         productos: [{
         productoId: { type: mongoose.Schema.Types.ObjectId, ref: 'Producto',   required: true 
 },      nombre: String,
-        presentacion: { type: String,  required: [true, 'La presentación es obligatoria'],   trim: true,  enum: { 
-        values: ['450g', '5.8kg', 'Unidad','Kit', 'Paquete', 'Accesorio'], // <--- AQUÍ LOS AGREGAS '5.8Kg'
-        message: '{VALUE} no es una presentación válida'  } 
+        presentacion: { 
+                type: String, 
+                required: [true, 'La presentación es obligatoria'], 
+                trim: true            
+        
+
 },      cantidad:        { type: Number, required: true },
         precio_unitario: { type: Number, required: true }, 
         molienda:        { type: String, default: 'N/A'},

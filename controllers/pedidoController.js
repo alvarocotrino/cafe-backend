@@ -21,21 +21,23 @@ const crearPedido = async (req, res) => {
             let precioReal = 0;
             const nombreProd = productoBD.nombre;
 
-            // Lógica de precios
-            if (nombreProd.includes('450g')) {
-                precioReal = esMiembroClub ? 40000 : 65000;
-            } else if (nombreProd.includes('5.8Kg')) {
-                precioReal = esMiembroClub ? 600000 : 640000;
-            } else if (nombreProd.includes('Filtro')) {
-                precioReal = 60000;
-            } else if (nombreProd.includes('Kit')) {
-                precioReal = 120000;
-            } else {
-                precioReal = productoBD.precio || 0;
-            }
+             // --- Lógica de precios por Presentación ---
+// Usamos p.presentacion (lo que viene del JSON) en lugar del nombre de la BD
+if (p.presentacion.includes('450g')) { 
+    precioReal = esMiembroClub ? 40000 : 65000;
+} else if (p.presentacion.includes('5.8kg')) { 
+    precioReal = esMiembroClub ? 600000 : 640000;
+} else if (nombreProd.toLowerCase().includes('filtro')) {
+    precioReal = 60000;
+} else if (nombreProd.toLowerCase().includes('kit')) {
+    precioReal = 120000;
+} else {
+    // Si no es nada de lo anterior, usa el precio que tenga el producto en la BD
+    precioReal = productoBD.precio_ocasional || productoBD.precio || 0;
+}
 
-            const subtotal = precioReal * p.cantidad;
-            precio_total += subtotal;
+const subtotal = precioReal * p.cantidad;
+precio_total += subtotal; // Importante el += para sumar si hay más productos
 
             const esCafe = nombreProd.toLowerCase().includes('café') || nombreProd.toLowerCase().includes('cafe');
 

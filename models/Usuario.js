@@ -14,13 +14,14 @@ const UsuarioSchema = new mongoose.Schema({
         required: [true, 'El correo es obligatorio'], 
         unique: true 
     },
-    telefono: {         type: String, 
-        required: [true, 'El número de celular es necesario para el envío'] 
-    },
-    password: {         type: String, 
+     password: {         type: String, 
         required: [true, 'La contraseña es obligatoria'] 
     },
-    rol: {         type: String, 
+    telefono: {         type: String, 
+        //required: [true, 'El número de celular es necesario para el envío'] 
+
+    },
+     rol: {         type: String, 
         enum: ['ocasional', 'empresarial', 'admin'], 
         default: 'ocasional' 
     },
